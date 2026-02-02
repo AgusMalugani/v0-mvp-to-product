@@ -24,21 +24,22 @@ function AppContent() {
     setSelectedVehicleId 
   } = useApp();
   
-  const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
+  // derive selectedVehicle from context-selected id so dashboards
+  // that only setSelectedVehicleId still open the detail view correctly
+  const selectedVehicle = vehicles.find((v) => v.id === selectedVehicleId) ?? null;
 
   const handleLogout = () => {
     logout();
-    setSelectedVehicle(null);
+    // clear selected id on logout
+    setSelectedVehicleId(null);
   };
 
   const handleViewVehicle = (vehicle: Vehicle) => {
-    setSelectedVehicle(vehicle);
     setSelectedVehicleId(vehicle.id);
     setCurrentView("vehicle-detail");
   };
 
   const handleOpenDiagnostics = (vehicle: Vehicle) => {
-    setSelectedVehicle(vehicle);
     setSelectedVehicleId(vehicle.id);
     setCurrentView("ai-diagnostics");
   };
@@ -63,7 +64,7 @@ function AppContent() {
           setCurrentView("admin-dashboard");
           break;
       }
-      setSelectedVehicle(null);
+      // clear selection when returning to dashboard
       setSelectedVehicleId(null);
     }
   };
