@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { AppProvider, useApp } from "@/lib/app-context";
 import { LandingPage } from "@/components/landing-page";
 import { ClientDashboard } from "@/components/dashboards/client-dashboard";
@@ -9,31 +10,35 @@ import { AdminDashboard } from "@/components/dashboards/admin-dashboard";
 import { VehicleDetail } from "@/components/vehicle-detail";
 import { AIDiagnostics } from "@/components/ai-diagnostics";
 import { NotificationsCenter } from "@/components/notifications-center";
+import type { Vehicle } from "@/lib/types";
 
 function AppContent() {
-  const {
-    currentView,
-    setCurrentView,
-    currentRole,
-    isLoggedIn,
-    logout,
+  const { 
+    currentView, 
+    setCurrentView, 
+    currentRole, 
+    isLoggedIn, 
+    logout, 
     vehicles,
     selectedVehicleId,
-    setSelectedVehicleId,
+    setSelectedVehicleId 
   } = useApp();
-
-  const selectedVehicle = vehicles.find((v) => v.id === selectedVehicleId) || null;
+  
+  const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
 
   const handleLogout = () => {
     logout();
+    setSelectedVehicle(null);
   };
 
-  const handleViewVehicle = (vehicle: { id: string }) => {
+  const handleViewVehicle = (vehicle: Vehicle) => {
+    setSelectedVehicle(vehicle);
     setSelectedVehicleId(vehicle.id);
     setCurrentView("vehicle-detail");
   };
 
-  const handleOpenDiagnostics = (vehicle: { id: string }) => {
+  const handleOpenDiagnostics = (vehicle: Vehicle) => {
+    setSelectedVehicle(vehicle);
     setSelectedVehicleId(vehicle.id);
     setCurrentView("ai-diagnostics");
   };
@@ -43,9 +48,23 @@ function AppContent() {
   };
 
   const handleBackToDashboard = () => {
-    setSelectedVehicleId(null);
     if (currentRole) {
-      setCurrentView(`${currentRole}-dashboard` as typeof currentView);
+      switch (currentRole) {
+        case "client":
+          setCurrentView("client-dashboard");
+          break;
+        case "workshop":
+          setCurrentView("workshop-dashboard");
+          break;
+        case "driver":
+          setCurrentView("driver-dashboard");
+          break;
+        case "admin":
+          setCurrentView("admin-dashboard");
+          break;
+      }
+      setSelectedVehicle(null);
+      setSelectedVehicleId(null);
     }
   };
 
@@ -70,7 +89,7 @@ function AppContent() {
     );
   }
 
-  // AI Diagnostics  
+  // AI Diagnostics
   if (currentView === "ai-diagnostics" && selectedVehicle) {
     return (
       <AIDiagnostics vehicle={selectedVehicle} onBack={handleBackToDashboard} />
@@ -83,7 +102,7 @@ function AppContent() {
     onViewVehicle: handleViewVehicle,
     onOpenDiagnostics: handleOpenDiagnostics,
     onOpenNotifications: handleOpenNotifications,
-    vehicles,
+    vehicles: vehicles,
   };
 
   switch (currentRole) {
